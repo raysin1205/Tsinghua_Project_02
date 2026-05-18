@@ -15,6 +15,19 @@ def load_release_curve():
     return pd.read_csv(DATA_DIR / "release_curve.csv")
 
 def load_all_data():
+    """
+    一次性读取本作业所需的全部输入数据。
+
+    对应作业：
+        任务 1 的数据读取部分。 读取 nodes.csv、edges.csv、od_pairs.csv 和 release_curve.csv。
+
+    返回：
+        nodes: 节点表，包含 node_id、type、name、x、y、population 
+        edges: 原始道路表，包含 from_node、to_node、length_m、capacity 
+        od_pairs: OD 需求表，包含 origin、destination、demand
+        release_curve: 人流释放曲线，包含 t_minute、release_rate
+    """
+    
     nodes = load_nodes()
     edges = load_edges()
     od_pairs = load_od_pairs()

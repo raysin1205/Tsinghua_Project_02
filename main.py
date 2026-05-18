@@ -1,6 +1,8 @@
 from data_loader import load_all_data
 from network_model import build_directed_edges, bpr_time, close_edges_by_node_pairs, get_closed_edge_ids, build_graph
-from config import BLOCKED_NODE_PAIRS
+from config import BLOCKED_NODE_PAIRS, OUTPUT_DIR
+import networkx as nx
+from assignment import node_path_to_edge_path, aon_assignment, compute_static_metrics
 
 
 def main():
@@ -46,6 +48,54 @@ def main():
 
     print("\nBlocked graph nodes:", blocked_graph.number_of_nodes())
     print("Blocked graph edges:", blocked_graph.number_of_edges())
+    node_path = nx.shortest_path(graph, source="T01", target="C01", weight="t0")
+    edge_path = node_path_to_edge_path(graph, node_path)
+
+    print("\nExample shortest node path:")
+    print(node_path)
+
+    print("\nExample shortest edge path:")
+    print(edge_path)
+    edge_results, od_paths = aon_assignment(graph, directed_edges, od_pairs)
+
+    print("\nAON result:")
+    print("Number of OD paths:", len(od_paths))
+    print("Total demand:", od_pairs["demand"].sum())
+    print("Total edge flow:", edge_results["flow"].sum())
+
+    print("\nTop 10 edges by flow:")
+    print(
+        edge_results.sort_values("flow", ascending=False)[
+            ["edge_id", "from_node", "to_node", "flow", "capacity"]
+        ].head(10)
+    )
+
+    metrics = compute_static_metrics(edge_results)
+
+    print("\nStatic metrics:")
+    print(metrics)
+
+    top10 = edge_results.sort_values("v_c_ratio", ascending=False).head(10)
+
+    print("\nTop 10 congested edges:")
+    print(
+        top10[
+            [
+                "edge_id",
+                "from_node",
+                "to_node",
+                "road_name",
+                "flow",
+                "capacity",
+                "v_c_ratio",
+                "travel_time",
+            ]
+        ]
+    )
+    OUTPUT_DIR.mkdir(exist_ok=True)
+
+    task2_output = edge_results.sort_values("v_c_ratio", ascending=False)
+    task2_output.to_csv(OUTPUT_DIR / "task2_edges_normal.csv", index=False)
 
 if __name__ == "__main__":
     main()
