@@ -3,6 +3,7 @@ from network_model import build_directed_edges, bpr_time, close_edges_by_node_pa
 from config import BLOCKED_NODE_PAIRS, OUTPUT_DIR
 import networkx as nx
 from assignment import node_path_to_edge_path, aon_assignment, compute_static_metrics
+from dynamics import prepare_edge_index, prepare_source_vector
 
 
 def main():
@@ -96,6 +97,22 @@ def main():
 
     task2_output = edge_results.sort_values("v_c_ratio", ascending=False)
     task2_output.to_csv(OUTPUT_DIR / "task2_edges_normal.csv", index=False)
+
+    edge_id_to_idx, idx_to_edge_id = prepare_edge_index(directed_edges)
+
+    source_vector = prepare_source_vector(
+        directed_edges,
+        od_pairs,
+        od_paths,
+        edge_id_to_idx,
+    )
+
+    print("\nODE source vector test:")
+    print("Number of edges:", len(edge_id_to_idx))
+    print("Source vector length:", len(source_vector))
+    print("Total source demand:", source_vector.sum())
+    print("Total OD demand:", od_pairs["demand"].sum())
+    print("Nonzero source edges:", (source_vector > 0).sum())
 
 if __name__ == "__main__":
     main()
