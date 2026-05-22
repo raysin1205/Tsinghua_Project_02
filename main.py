@@ -3,8 +3,8 @@ from network_model import build_directed_edges, bpr_time, close_edges_by_node_pa
 from config import BLOCKED_NODE_PAIRS, OUTPUT_DIR
 import networkx as nx
 from assignment import node_path_to_edge_path, aon_assignment, compute_static_metrics
-from dynamics import prepare_edge_index, prepare_source_vector
-
+from dynamics import prepare_edge_index, prepare_source_vector, prepare_turn_matrix, release_rate
+import numpy as np
 
 def main():
     nodes, edges, od_pairs, release_curve = load_all_data()
@@ -114,5 +114,34 @@ def main():
     print("Total OD demand:", od_pairs["demand"].sum())
     print("Nonzero source edges:", (source_vector > 0).sum())
 
+    turn_matrix = prepare_turn_matrix(
+    directed_edges,
+    od_pairs,
+    od_paths,
+    edge_id_to_idx,
+    )
+
+    print("\nODE turn matrix test:")
+    print("Turn matrix shape:", turn_matrix.shape)
+    print("Nonzero turns:", turn_matrix.nnz)
+
+    row_sums = np.array(turn_matrix.sum(axis=1)).ravel()
+
+    print("Max row sum:", row_sums.max())
+    print("Rows with positive turns:", (row_sums > 0).sum())
+
+    print("\nRelease curve test:")
+    for t in [0, 1, 2.5, 5, 8, 20]:
+        print(t, release_rate(t, release_curve))
+
+    area = np.trapezoid(
+        release_curve["release_rate"].values,
+        release_curve["t_minute"].values,
+    )
+    print("Release curve area:", area)
+
+
+
+    
 if __name__ == "__main__":
     main()
