@@ -4,7 +4,7 @@ import networkx as nx
 from data_loader import load_all_data
 from network_model import build_directed_edges, bpr_time, close_edges_by_node_pairs, get_closed_edge_ids, build_graph
 from config import BLOCKED_NODE_PAIRS, OUTPUT_DIR
-from assignment import node_path_to_edge_path, aon_assignment, compute_static_metrics
+from assignment import node_path_to_edge_path, aon_assignment, compute_static_metrics, format_task2_edges_output
 from dynamics import prepare_edge_index, prepare_source_vector, prepare_turn_matrix, release_rate, build_rhs, run_ode_simulation, compute_dynamic_metrics
 from visualization import plot_top_edges_dynamic_curves,  plot_total_in_net
 
@@ -98,8 +98,13 @@ def main():
     )
     OUTPUT_DIR.mkdir(exist_ok=True)
 
-    task2_output = edge_results.sort_values("v_c_ratio", ascending=False)
-    task2_output.to_csv(OUTPUT_DIR / "task2_edges_normal.csv", index=False)
+    task2_output = format_task2_edges_output(edge_results)
+
+    task2_output.to_csv(
+    OUTPUT_DIR / "task2_edges_normal.csv",
+    index=False,
+    encoding="utf-8-sig",
+    )
 
     edge_id_to_idx, idx_to_edge_id = prepare_edge_index(directed_edges)
 

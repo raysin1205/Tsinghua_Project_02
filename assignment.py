@@ -93,3 +93,34 @@ def compute_static_metrics(edge_results): # 计算TSTT
         "max_vc": max_vc
     }
 
+
+def format_task2_edges_output(edge_results):
+    """
+    将任务 2 / 任务 4 的边结果整理成作业要求的 CSV 格式。
+    """
+    output = edge_results.rename(
+        columns={
+            "from_node": "from",
+            "to_node": "to",
+            "t0": "t0_min",
+            "travel_time": "t_min",
+        }
+    )
+
+    required_columns = [
+        "edge_id",
+        "from",
+        "to",
+        "road_name",
+        "length_m",
+        "capacity",
+        "flow",
+        "t0_min",
+        "t_min",
+        "v_c_ratio",
+    ]
+
+    output = output[required_columns].copy()
+    output = output.sort_values("v_c_ratio", ascending=False)
+
+    return output
