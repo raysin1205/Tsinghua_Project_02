@@ -17,6 +17,7 @@ from dynamics import (
     run_ode_simulation,
 )
 from visualization import plot_total_in_net, plot_top_edges_dynamic_curves
+from comparison import compute_flow_diff
 from config import OUTPUT_DIR, BLOCKED_NODE_PAIRS
 
 
@@ -31,6 +32,8 @@ def main():
     print("od_pairs:", od_pairs.shape)
     print("release_curve:", release_curve.shape)
 
+
+
 # 路网构建与检查
     directed_edges = build_directed_edges(edges)
     graph = build_graph(directed_edges)
@@ -38,6 +41,8 @@ def main():
     print("directed_edges:", directed_edges.shape)
     print("graph nodes:", graph.number_of_nodes())
     print("graph edges:", graph.number_of_edges())
+
+
 
 # AON 和 BPR import
     edge_results, od_paths = aon_assignment(graph, directed_edges, od_pairs)
@@ -48,6 +53,8 @@ def main():
     print("Static metrics:", static_metrics)
 
     top10_congested = edge_results.sort_values("v_c_ratio", ascending=False).head(10)
+
+
 
 # Top10
     print("\nTop 10 congested edges:")
@@ -66,6 +73,8 @@ def main():
         ]
     )
 
+
+
 # edges_normal.csv 生成
     OUTPUT_DIR.mkdir(exist_ok=True)
 
@@ -75,6 +84,8 @@ def main():
         index=False,
         encoding="utf-8-sig",
     )
+
+
 
 # 动态ODE实现
     edge_id_to_idx, idx_to_edge_id = prepare_edge_index(directed_edges)
@@ -105,6 +116,8 @@ def main():
     print("\nTask 3 completed: ODE dynamic simulation.")
     print("Dynamic metrics:", dynamic_metrics)
 
+
+
 # Task03 要求的 task3_total_in_net.png 和 task3_dynamic_curves.png 图片生成
     plot_total_in_net(
         sol,
@@ -123,6 +136,7 @@ def main():
         edge_id_to_idx,
         OUTPUT_DIR / "task3_dynamic_curves.png",
     )
+
 
 
 # BLOCKED 封路场景对比
@@ -183,6 +197,21 @@ def main():
     print("Blocked dynamic TSTT:", blocked_dynamic_metrics["dynamic_tstt"])
     print("Normal saturated edges:", static_metrics["saturated_count"])
     print("Blocked saturated edges:", blocked_static_metrics["saturated_count"])
+
+
+
+
+    flow_diff = compute_flow_diff(edge_results, blocked_edge_results)
+
+    flow_diff.to_csv(
+        OUTPUT_DIR / "task4_flow_diff.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+    print("\nTop 10 flow increase edges:")
+    print(flow_diff.head(10))
+
 
 
 
