@@ -1,10 +1,13 @@
+import numpy as np
+import networkx as nx
+
 from data_loader import load_all_data
 from network_model import build_directed_edges, bpr_time, close_edges_by_node_pairs, get_closed_edge_ids, build_graph
 from config import BLOCKED_NODE_PAIRS, OUTPUT_DIR
-import networkx as nx
 from assignment import node_path_to_edge_path, aon_assignment, compute_static_metrics
 from dynamics import prepare_edge_index, prepare_source_vector, prepare_turn_matrix, release_rate, build_rhs, run_ode_simulation, compute_dynamic_metrics
-import numpy as np
+from visualization import plot_top_edges_dynamic_curves,  plot_total_in_net
+
 
 def main():
     nodes, edges, od_pairs, release_curve = load_all_data()
@@ -172,6 +175,26 @@ def main():
     print("\nDynamic metrics:")
     print(dynamic_metrics)
 
+
+    OUTPUT_DIR.mkdir(exist_ok=True)
+
+    plot_total_in_net(
+        sol,
+        OUTPUT_DIR / "task3_total_in_net.png",
+    )
+
+    top5_edge_ids = (
+        edge_results.sort_values("v_c_ratio", ascending=False)
+        .head(5)["edge_id"]
+        .tolist()
+    )
+
+    plot_top_edges_dynamic_curves(
+        sol,
+        top5_edge_ids,
+        edge_id_to_idx,
+        OUTPUT_DIR / "task3_dynamic_curves.png",
+    )
 
 
 if __name__ == "__main__":
