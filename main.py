@@ -3,7 +3,7 @@ from network_model import build_directed_edges, bpr_time, close_edges_by_node_pa
 from config import BLOCKED_NODE_PAIRS, OUTPUT_DIR
 import networkx as nx
 from assignment import node_path_to_edge_path, aon_assignment, compute_static_metrics
-from dynamics import prepare_edge_index, prepare_source_vector, prepare_turn_matrix, release_rate
+from dynamics import prepare_edge_index, prepare_source_vector, prepare_turn_matrix, release_rate, build_rhs, run_ode_simulation, compute_dynamic_metrics
 import numpy as np
 
 def main():
@@ -140,8 +140,39 @@ def main():
     )
     print("Release curve area:", area)
 
+    rhs = build_rhs(directed_edges, source_vector, turn_matrix, release_curve)
+
+    n0 = np.zeros(len(edge_id_to_idx))
+    dn0 = rhs(0.0, n0)
+
+    print("\nODE rhs test:")
+    print("dn0 shape:", dn0.shape)
+    print("dn0 sum:", dn0.sum())
+    print("dn0 max:", dn0.max())
+    print("dn0 min:", dn0.min())
 
 
-    
+    sol = run_ode_simulation(
+        directed_edges,
+        source_vector,
+        turn_matrix,
+        release_curve,
+    )
+
+    print("\nODE simulation test:")
+    print("success:", sol.success)
+    print("message:", sol.message)
+    print("sol.t shape:", sol.t.shape)
+    print("sol.y shape:", sol.y.shape)
+    print("nfev:", sol.nfev)
+        
+
+    dynamic_metrics = compute_dynamic_metrics(sol, od_pairs["demand"].sum())
+
+    print("\nDynamic metrics:")
+    print(dynamic_metrics)
+
+
+
 if __name__ == "__main__":
     main()
