@@ -1,5 +1,9 @@
 from data_loader import load_all_data
-from network_model import build_directed_edges, build_graph
+from network_model import (
+    build_directed_edges,
+    build_graph,
+    close_edges_by_node_pairs,
+)
 from assignment import (
     aon_assignment,
     compute_static_metrics,
@@ -13,7 +17,7 @@ from dynamics import (
     run_ode_simulation,
 )
 from visualization import plot_total_in_net, plot_top_edges_dynamic_curves
-from config import OUTPUT_DIR
+from config import OUTPUT_DIR, BLOCKED_NODE_PAIRS
 
 
 
@@ -119,6 +123,72 @@ def main():
         edge_id_to_idx,
         OUTPUT_DIR / "task3_dynamic_curves.png",
     )
+
+
+# BLOCKED 封路场景对比
+    blocked_edges = close_edges_by_node_pairs(directed_edges, BLOCKED_NODE_PAIRS)
+    blocked_graph = build_graph(blocked_edges)
+
+    blocked_edge_results, blocked_od_paths = aon_assignment(
+        blocked_graph,
+        blocked_edges,
+        od_pairs,
+    )
+    blocked_static_metrics = compute_static_metrics(blocked_edge_results)
+
+    blocked_task2_output = format_task2_edges_output(blocked_edge_results)
+    blocked_task2_output.to_csv(
+        OUTPUT_DIR / "task2_edges_blocked.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+    blocked_edge_id_to_idx, _ = prepare_edge_index(blocked_edges)
+
+    blocked_source_vector = prepare_source_vector(
+        blocked_edges,
+        od_pairs,
+        blocked_od_paths,
+        blocked_edge_id_to_idx,
+    )
+
+    blocked_turn_matrix = prepare_turn_matrix(
+        blocked_edges,
+        od_pairs,
+        blocked_od_paths,
+        blocked_edge_id_to_idx,
+    )
+
+    blocked_sol = run_ode_simulation(
+        blocked_edges,
+        blocked_source_vector,
+        blocked_turn_matrix,
+        release_curve,
+    )
+
+    blocked_dynamic_metrics = compute_dynamic_metrics(
+        blocked_sol,
+        od_pairs["demand"].sum(),
+    )
+
+
+    print("\nTask 4 completed: blocked scenario simulation.")
+    print("Blocked static metrics:", blocked_static_metrics)
+    print("Blocked dynamic metrics:", blocked_dynamic_metrics)
+
+    print("\nScenario comparison:")
+    print("Normal static TSTT:", static_metrics["static_tstt"])
+    print("Blocked static TSTT:", blocked_static_metrics["static_tstt"])
+    print("Normal dynamic TSTT:", dynamic_metrics["dynamic_tstt"])
+    print("Blocked dynamic TSTT:", blocked_dynamic_metrics["dynamic_tstt"])
+    print("Normal saturated edges:", static_metrics["saturated_count"])
+    print("Blocked saturated edges:", blocked_static_metrics["saturated_count"])
+
+
+
+
+
+
 
 
 
