@@ -1,3 +1,5 @@
+import pandas as pd
+
 def compute_flow_diff(normal_edge_results, blocked_edge_results):
     """
     BLOCKED 封闭道路情景对比
@@ -41,3 +43,52 @@ def compute_flow_diff(normal_edge_results, blocked_edge_results):
     flow_diff = flow_diff.sort_values("flow_delta", ascending=False)
 
     return flow_diff
+
+
+def t0_compute(edge_path, edge_t0_map):
+    total = 0
+
+    for edge_id in edge_path:
+        total += edge_t0_map[edge_id]
+
+    return total
+
+
+def compute_detour_table(
+    od_pairs,
+    normal_od_paths,
+    blocked_od_paths,
+    directed_edges,
+    closed_edge_ids
+    ):
+
+    closed_edge_set = set(closed_edge_ids)
+    edge_t0_map = dict(zip(directed_edges["edge_id"], directed_edges["t0"]))
+
+    rows = []
+
+    for od_idx, normal_path in normal_od_paths.items():
+        if not any(edge_id in closed_edge_set for edge_id in normal_path):
+            continue
+
+        blocked_path = blocked_od_paths[od_idx]
+
+        t0_normal = t0_compute(normal_path, edge_t0_map)
+        t0_blocked = t0_compute(blocked_path, edge_t0_map)
+        detour = t0_blocked - t0_normal
+
+        rows.append(
+            {
+                "origin": od_pairs.loc[od_idx, "origin"],
+                "destination": od_pairs.loc[od_idx, "destination"],
+                "demand": od_pairs.loc[od_idx, "demand"],
+                "t0_normal_min": t0_normal,
+                "t0_blocked_min": t0_blocked,
+                "detour_min": detour,
+            }
+        )
+
+    detour_table = pd.DataFrame(rows)
+    detour_table = detour_table.sort_values("demand", ascending=False)
+
+    return detour_table

@@ -3,6 +3,7 @@ from network_model import (
     build_directed_edges,
     build_graph,
     close_edges_by_node_pairs,
+    get_closed_edge_ids
 )
 from assignment import (
     aon_assignment,
@@ -17,7 +18,7 @@ from dynamics import (
     run_ode_simulation,
 )
 from visualization import plot_total_in_net, plot_top_edges_dynamic_curves
-from comparison import compute_flow_diff
+from comparison import compute_flow_diff, compute_detour_table, t0_compute
 from config import OUTPUT_DIR, BLOCKED_NODE_PAIRS
 
 
@@ -212,7 +213,37 @@ def main():
     print("\nTop 10 flow increase edges:")
     print(flow_diff.head(10))
 
+# 绕路代价计算, task4_detour.csv 生成
+    closed_edge_ids = get_closed_edge_ids(blocked_edges)
 
+    detour_table = compute_detour_table(
+        od_pairs,
+        od_paths,
+        blocked_od_paths,
+        directed_edges,
+        closed_edge_ids,
+    )
+
+    detour_table.to_csv(
+        OUTPUT_DIR / "task4_detour.csv",
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+    weighted_avg_detour = (
+        (detour_table["detour_min"] * detour_table["demand"]).sum()
+        / detour_table["demand"].sum()
+    )
+
+    total_detour_person_min = (
+        detour_table["detour_min"] * detour_table["demand"]
+    ).sum()
+
+    print("\nAffected OD detour analysis:")
+    print("Affected OD pairs:", len(detour_table))
+    print("Weighted average detour time:", weighted_avg_detour)
+    print("Total detour person-minutes:", total_detour_person_min)
+    print(detour_table.head(10))
 
 
 
