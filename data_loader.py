@@ -2,25 +2,34 @@ import pandas as pd
 
 from config import DATA_DIR
 
+def clean_text_columns(df):
+    """清理空字符。"""
+    df = df.copy()
+    def clean_value(value):
+        if isinstance(value, str):
+            return value.replace("\x00", "").strip()
+        return value
+    for col in df.select_dtypes(include=["object", "string"]).columns:
+        df[col] = df[col].map(clean_value)
+    return df
+
 def load_nodes():
-    return pd.read_csv(DATA_DIR / "nodes.csv")
+    nodes = pd.read_csv(DATA_DIR / "nodes.csv")
+    return clean_text_columns(nodes)
 
 def load_edges():
-    return pd.read_csv(DATA_DIR / "edges.csv")
+    edges = pd.read_csv(DATA_DIR / "edges.csv")
+    return clean_text_columns(edges)
 
 def load_od_pairs():
-    return pd.read_csv(DATA_DIR / "od_pairs.csv")
+    od_pairs = pd.read_csv(DATA_DIR / "od_pairs.csv")
+    return  clean_text_columns(od_pairs)
 
 def load_release_curve():
     return pd.read_csv(DATA_DIR / "release_curve.csv")
 
 def load_all_data():
     """
-    一次性读取本作业所需的全部输入数据。
-
-    对应作业：
-        任务 1 的数据读取部分。 读取 nodes.csv、edges.csv、od_pairs.csv 和 release_curve.csv。
-
     返回：
         nodes: 节点表，包含 node_id、type、name、x、y、population 
         edges: 原始道路表，包含 from_node、to_node、length_m、capacity 
