@@ -23,10 +23,11 @@ def load_edges():
 
 def load_od_pairs():
     od_pairs = pd.read_csv(DATA_DIR / "od_pairs.csv")
-    return  clean_text_columns(od_pairs)
+    return clean_text_columns(od_pairs)
 
 def load_release_curve():
-    return pd.read_csv(DATA_DIR / "release_curve.csv")
+    release_curve = pd.read_csv(DATA_DIR / "release_curve.csv")
+    return clean_text_columns(release_curve)
 
 def load_all_data():
     """

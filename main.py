@@ -17,7 +17,11 @@ from dynamics import (
     prepare_turn_matrix,
     run_ode_simulation,
 )
-from visualization import plot_total_in_net, plot_top_edges_dynamic_curves
+from visualization import (plot_total_in_net, 
+    plot_top_edges_dynamic_curves,
+    plot_network_heatmap,
+    plot_flow_diff_map
+)
 from comparison import compute_flow_diff, compute_detour_table, t0_compute
 from config import OUTPUT_DIR, BLOCKED_NODE_PAIRS
 
@@ -118,7 +122,6 @@ def main():
     print("Dynamic metrics:", dynamic_metrics)
 
 
-
 # Task03 要求的 task3_total_in_net.png 和 task3_dynamic_curves.png 图片生成
     plot_total_in_net(
         sol,
@@ -213,6 +216,45 @@ def main():
     print("\nTop 10 flow increase edges:")
     print(flow_diff.head(10))
 
+
+
+
+# Task5 要求的 task5_heatmap_normal.png 正常情况下的热力图
+
+    common_vmax = max(
+    edge_results["v_c_ratio"].max(),
+    blocked_edge_results["v_c_ratio"].max(),
+    )
+
+    plot_network_heatmap(
+        nodes,
+        edge_results,
+        OUTPUT_DIR / "task5_heatmap_normal.png",
+        "Normal Scenario Heatmap",
+        common_vmax
+    )
+
+
+# Task5 BLOCKED封路情况下 task5_heatmap_blocked.png 的热力图
+    plot_network_heatmap(
+    nodes,
+    blocked_edge_results,
+    OUTPUT_DIR / "task5_heatmap_blocked.png",
+    "Blocked Scenario Heatmap",
+    common_vmax
+    )
+
+
+# Task5 流量变化图 task5_flow_diff.png
+    plot_flow_diff_map(
+        nodes,
+        flow_diff,
+        OUTPUT_DIR / "task5_flow_diff.png",
+        "Flow Difference After Blocking",
+    )
+
+
+
 # 绕路代价计算, task4_detour.csv 生成
     closed_edge_ids = get_closed_edge_ids(blocked_edges)
 
@@ -244,7 +286,6 @@ def main():
     print("Weighted average detour time:", weighted_avg_detour)
     print("Total detour person-minutes:", total_detour_person_min)
     print(detour_table.head(10))
-
 
 
 
