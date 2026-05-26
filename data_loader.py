@@ -2,35 +2,21 @@ import pandas as pd
 
 from config import DATA_DIR
 
-def clean_text_columns(df):
-    """清理空字符。"""
-    df = df.copy()
-    def clean_value(value):
-        if isinstance(value, str):
-            return value.replace("\x00", "").strip()
-        return value
-    for col in df.select_dtypes(include=["object", "string"]).columns:
-        df[col] = df[col].map(clean_value)
-    return df
-
 def load_nodes():
-    nodes = pd.read_csv(DATA_DIR / "nodes.csv")
-    return clean_text_columns(nodes)
+    return pd.read_csv(DATA_DIR / "nodes.csv")
 
 def load_edges():
-    edges = pd.read_csv(DATA_DIR / "edges.csv")
-    return clean_text_columns(edges)
+    return pd.read_csv(DATA_DIR / "edges.csv")
 
 def load_od_pairs():
-    od_pairs = pd.read_csv(DATA_DIR / "od_pairs.csv")
-    return clean_text_columns(od_pairs)
+    return pd.read_csv(DATA_DIR / "od_pairs.csv")
 
 def load_release_curve():
-    release_curve = pd.read_csv(DATA_DIR / "release_curve.csv")
-    return clean_text_columns(release_curve)
+    return pd.read_csv(DATA_DIR / "release_curve.csv")
 
 def load_all_data():
     """
+    一次性读取本作业所需的全部输入数据。
     返回：
         nodes: 节点表，包含 node_id、type、name、x、y、population 
         edges: 原始道路表，包含 from_node、to_node、length_m、capacity 
