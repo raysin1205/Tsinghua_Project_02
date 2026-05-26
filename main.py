@@ -13,6 +13,8 @@ from visualization import (
 )
 from comparison import compute_flow_diff, compute_detour_table
 from run_scenario import run_scenario
+from bonus_01 import generate_bonus_b1_interactive_map
+from bonus_02 import run_bonus_b2_sensitivity_analysis
 from config import OUTPUT_DIR, BLOCKED_NODE_PAIRS
 
 
@@ -207,6 +209,22 @@ def main():
 
 
 
+    # Bonus 1 & Bonus 2
+    generate_bonus_b1_interactive_map(
+        nodes,
+        normal_result,
+        blocked_result,
+        OUTPUT_DIR / "network_interactive.html",
+    )
+
+
+    run_bonus_b2_sensitivity_analysis(
+        edges,
+        od_pairs,
+        release_curve,
+        OUTPUT_DIR,
+        baseline_result=blocked_result,
+    )
 
 if __name__ == "__main__":
     main()
