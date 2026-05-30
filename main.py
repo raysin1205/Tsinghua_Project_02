@@ -198,6 +198,7 @@ def main():
         OUTPUT_DIR / "task5_heatmap_blocked.png",
         "Blocked Scenario Heatmap",
         common_vmax,
+        BLOCKED_NODE_PAIRS,
     )
 
     plot_flow_diff_map(

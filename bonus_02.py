@@ -28,7 +28,8 @@ def run_bonus_b2_sensitivity_analysis(
 
     # S1: 额外封路场景
     s1_closed_pairs = BLOCKED_NODE_PAIRS + [
-        ("T05", "T02"),
+        ("C04", "D04"),
+        ("D04", "C04"),
     ]
 
     scenario_results["S1"] = run_scenario(
@@ -43,9 +44,9 @@ def run_bonus_b2_sensitivity_analysis(
     s2_edges = edges.copy()
 
     s2_mask = (
-        ((s2_edges["from_node"] == "C04") & (s2_edges["to_node"] == "C08"))
+        ((s2_edges["from_node"] == "J09") & (s2_edges["to_node"] == "J12"))
         |
-        ((s2_edges["from_node"] == "C08") & (s2_edges["to_node"] == "C04"))
+        ((s2_edges["from_node"] == "J12") & (s2_edges["to_node"] == "J09"))
     )
 
     s2_edges.loc[s2_mask, "capacity"] = s2_edges.loc[s2_mask, "capacity"] * 0.5
@@ -59,7 +60,7 @@ def run_bonus_b2_sensitivity_analysis(
 
     # S3: 食堂关闭需求转移
     s3_od_pairs = od_pairs.copy()
-    s3_od_pairs.loc[s3_od_pairs["destination"] == "C01", "destination"] = "C02"
+    s3_od_pairs.loc[s3_od_pairs["destination"] == "J12", "destination"] = "T06"
 
     scenario_results["S3"] = run_scenario(
         "S3",

@@ -59,7 +59,7 @@ def plot_top_edges_dynamic_curves(sol, top_edge_ids, edge_id_to_idx, output_path
     
 
 
-def plot_network_heatmap(nodes, edge_results, output_path, title, v_max=None):
+def plot_network_heatmap(nodes, edge_results, output_path, title, v_max=None, blocked_node_pairs=None):
     """
     绘制路网静态热力图。
     参数：
@@ -88,6 +88,9 @@ def plot_network_heatmap(nodes, edge_results, output_path, title, v_max=None):
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     fig.colorbar(sm, ax=ax, label="v/c ratio")
 
+    blocked_pairs = set(blocked_node_pairs or [])
+    blocked_pairs.update((v, u) for u, v in list(blocked_pairs))
+
     for _, row in edge_results.iterrows():
         from_node = row["from_node"]
         to_node = row["to_node"]
@@ -99,8 +102,14 @@ def plot_network_heatmap(nodes, edge_results, output_path, title, v_max=None):
         width = 1.0 + 3.0 * (row_ratio ** 0.5) 
 
         color = cmap(norm(row["v_c_ratio"]))
+        linestyle = "solid"
 
-        ax.plot([x1, x2], [y1, y2], linewidth=width, alpha=0.9, color = color)
+        if (from_node, to_node) in blocked_pairs:
+            color = "red"
+            linestyle = "dashed"
+            width = max(width, 2.5)
+
+        ax.plot([x1, x2], [y1, y2], linewidth=width, alpha=0.9, color = color, linestyle=linestyle)
 
 
     node_colors = {
@@ -145,7 +154,7 @@ def plot_flow_diff_map(nodes, flow_diff, output_path, title):
 
     fig, ax = plt.subplots(figsize=(8, 8))
 
-    max_abs_delta = max(abs(flow_diff["flow_delta"].min()), abs(flow_diff["flow_delta"].max()))
+    max_abs_delta = max(abs(flow_diff["flow_delta"].min()), abs(flow_diff["flow_delta"].max()), 1e-6)
 
     cmap = plt.get_cmap("RdBu_r")
     norm = plt.Normalize(vmin=-max_abs_delta, vmax=max_abs_delta)
@@ -183,6 +192,30 @@ def plot_flow_diff_map(nodes, flow_diff, output_path, title):
 
         ax.plot([x1, x2], [y1, y2], linewidth=width, alpha=0.9, color = color, zorder=2)
 
+    top_changes = flow_diff.reindex(
+        flow_diff["flow_delta"].abs().sort_values(ascending=False).index
+    ).head(5)
+
+    for _, row in top_changes.iterrows():
+        if row["flow_delta"] == 0:
+            continue
+
+        from_node = row["from"]
+        to_node = row["to"]
+
+        x1, y1 = node_pos[from_node]
+        x2, y2 = node_pos[to_node]
+
+        ax.text(
+            (x1 + x2) / 2,
+            (y1 + y2) / 2,
+            f"{row['flow_delta']:.0f}",
+            fontsize=8,
+            ha="center",
+            va="center",
+            zorder=5,
+            bbox=dict(facecolor="white", edgecolor="none", alpha=0.75, pad=1.5),
+        )
 
     node_colors = {
         "building":"#4C78A8",

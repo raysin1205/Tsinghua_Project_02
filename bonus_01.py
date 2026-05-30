@@ -28,6 +28,10 @@ def generate_bonus_b1_interactive_map(
         row["node_id"]: (row["x"], row["y"])
         for _, row in nodes.iterrows()
     }
+    x_min, x_max = nodes["x"].min(), nodes["x"].max()
+    y_min, y_max = nodes["y"].min(), nodes["y"].max()
+    x_padding = (x_max - x_min) * 0.06
+    y_padding = (y_max - y_min) * 0.06
 
     blocked_directed_pairs = set()
     for u, v in blocked_node_pairs:
@@ -83,12 +87,12 @@ def generate_bonus_b1_interactive_map(
         xaxis_title="x (m)",
         yaxis_title="y (m)",
         xaxis=dict(
-            range=[0, 2000],
+            range=[x_min - x_padding, x_max + x_padding],
             showgrid=True,
             zeroline=False,
         ),
         yaxis=dict(
-            range=[300, 2900],
+            range=[y_min - y_padding, y_max + y_padding],
             scaleanchor="x",
             scaleratio=1,
             showgrid=True,

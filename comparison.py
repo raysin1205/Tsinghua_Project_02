@@ -89,6 +89,7 @@ def compute_detour_table(
         )
 
     detour_table = pd.DataFrame(rows)
+    detour_table = detour_table[detour_table["detour_min"] > 0]
     detour_table = detour_table.sort_values("demand", ascending=False)
 
     return detour_table
